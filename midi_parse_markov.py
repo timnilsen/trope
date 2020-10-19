@@ -5,22 +5,6 @@ import numpy as np
 import pyperclip
 import trope_constants as tcon
 
-'''
-To Do:
-[x] create dictionary for drum sounds
-[ ] scale amplitude to min / max velocities in song
-[x] get first duration for each track,
-[ ] use first note for FoxDot future
-[ ] clean up and remove key from dur_markov that has the first time message as its key
-[x] get time signature
-[ ] get all time signatures and use it for future scheduling
-[ ] some sets are empty, remove 'em' e.g. note_markov['Tenor Sax'] (empty sets are the result of the last note in the list - remove it)
-[ ] add prompt for midi file input
-[] adjust get_markov_dict() so that it can accept a list or a dictionary
-[ ] use numpy.diff for time_to_dur
-[ ] have some sort of txt file open with printed statements & maybe copy output to clipboard automatically https://github.com/asweigart/pyperclip
-'''
-
 mid = MidiFile('/Users/timnilsen/Downloads/Aja.mid')
 
 '''
@@ -125,5 +109,3 @@ dur_markov = get_markov_dict(dur_dict)
 print(' - - - tracks: - - - ')
 for i, track in enumerate(mid.tracks):
     print(i, track.name)
-
-# pyperclip.copy()
