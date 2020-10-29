@@ -2,8 +2,28 @@ import librosa
 import mido
 from mido import Message, MidiFile, MidiTrack
 import numpy as np
+from collections import OrderedDict
 import pyperclip
 import trope_constants as tcon
+
+'''
+To Do:
+[x] create dictionary for drum sounds
+[ ] scale amplitude to min / max velocities in song
+[x] get first duration for each track,
+[ ] use first note for FoxDot future
+[ ] clean up and remove key from dur_markov that has the first time message as its key
+[x] get time signature
+[ ] get all time signatures and use it for future scheduling
+[ ] some sets are empty, remove 'em' e.g. note_markov['Tenor Sax'] (empty sets are the result of the last note in the list - remove it)
+[ ] add prompt for midi file input
+[x] adjust get_markov_dict() so that it can accept a list or a dictionary
+[ ] have some sort of txt file open with printed statements & maybe copy output to clipboard automatically https://github.com/asweigart/pyperclip
+[ ] why can't I get trope_constants to work predictably?
+[ ] clean up empty list values in final dictionary keys, see time_series_markov
+[ ] make drum converter a little more agnostic to the name of the track, e.g. 'drum', 'percussion', etc.]
+[x] order the markov dictionaries so that they start with the first possible note, possibly https://docs.python.org/3/library/collections.html#collections.OrderedDict
+'''
 
 mid = MidiFile('/Users/timnilsen/Downloads/Aja.mid')
 
@@ -81,22 +101,21 @@ for i in note_on_list:
 channel_dict = {}
 note_dict = {}
 amp_dict = {}
-dur_dict_initial = {}
+dur_dict = {}
 for k,v in note_on_dict.items():
     for i in v[:]:
         channel_dict.setdefault(k,[]).append(i[0])
         note_dict.setdefault(k,[]).append(i[1])
         amp_dict.setdefault(k,[]).append(i[2])
-        dur_dict_initial.setdefault(k,[]).append(i[3])
-
-dur_dict = {track: np.abs(np.around(np.diff(dur), 1)) for track, dur in dur_dict_initial.items()}
-print(dur_dict)
+        dur_dict.setdefault(k,[]).append(i[3])
 
 def get_next_notes(note, note_list):
     return [n for i, n in enumerate(note_list) if i > 0 and note_list[i - 1] == note]
 
 def get_track_note_dict(notes):
-    return {note: get_next_notes(note, notes) for note in set(notes)}
+    track_note_dict = OrderedDict({note: get_next_notes(note, notes) for note in set(notes)})
+    track_note_dict.move_to_end(notes[0], last=False)
+    return track_note_dict
 
 def get_markov_dict(dict):
     return {track: get_track_note_dict(notes) for track, notes in dict.items()}
@@ -106,6 +125,13 @@ note_markov = get_markov_dict(note_dict)
 amp_markov = get_markov_dict(amp_dict)
 dur_markov = get_markov_dict(dur_dict)
 
-print(' - - - tracks: - - - ')
-for i, track in enumerate(mid.tracks):
-    print(i, track.name)
+# print(note_dict)
+# print(note_markov)
+
+
+def print_tracks():
+    print(' - - - tracks: - - - ')
+    for i, track in enumerate(mid.tracks):
+        print(i, track.name)
+
+print_tracks()
