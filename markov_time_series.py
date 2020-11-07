@@ -9,7 +9,7 @@ To Do:
 [ ] Reverse Markov (y_rev = y[::-1])
 [ ] Forecast time series - should do this in another script
 [ ] Forecast in reverse
-[ ]
+[ ] Order markov dictionary, so that it starts with the first possible sample.
 '''
 
 # file = '/Users/timnilsen/Documents/01-Future Days.mp3'
@@ -37,7 +37,6 @@ def get_track_note_dict(notes):
     return {note: get_next_notes(note, notes) for note in set(notes)}
 
 time_series_markov = get_track_note_dict(y_neu)
-
 
 final_time_series_markov_fix_indexerror = {k: v for k, v in time_series_markov.items() if v is not None and any(v)} #convert this to function, as above. go over this as an exception, only if necessary
 

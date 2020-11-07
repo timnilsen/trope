@@ -14,7 +14,7 @@ To Do:
 [ ] use first note for FoxDot future
 [ ] clean up and remove key from dur_markov that has the first time message as its key
 [x] get time signature
-[ ] get all time signatures and use it for future scheduling
+[ ] get all time signatures and use it for future scheduling (named tuple?)
 [ ] some sets are empty, remove 'em' e.g. note_markov['Tenor Sax'] (empty sets are the result of the last note in the list - remove it)
 [ ] add prompt for midi file input
 [x] adjust get_markov_dict() so that it can accept a list or a dictionary
@@ -33,12 +33,6 @@ Variables to be used throughout the script or by themselves.
 song_length = mid.length
 midi_type = mid.type    # 0 = (single track): all messages are saved in one track, 1 = (synchronous): all tracks start at the same time, 2 = (asynchronous): each track is independent of the others
 
-def get_bpm():
-    for track in mid.tracks:
-        for message in track:
-            if message.type == 'set_tempo':
-                return mido.tempo2bpm(message.tempo)
-
 def get_time_signature():
     for track in mid.tracks:
         for message in track:
@@ -51,7 +45,7 @@ def note_to_foxdot(x):
             return f
 
 def percussionmap_to_foxdot(x):
-    '''Maps '''
+    '''Maps midi to FoxDot's drum sounds.'''
     for n, f in tcon.foxdot_drum_dict.items():
         if x == n:
             return f
@@ -64,6 +58,11 @@ def time_to_dur(x):
     '''Scales the midi's ticks per beat to durations to be used by Foxdot.'''
     return x * (1 / mid.ticks_per_beat)
 
+def get_bpm():
+    for track in mid.tracks:
+        for message in track:
+            if message.type == 'set_tempo':
+                return mido.tempo2bpm(message.tempo)
 
 def get_future():
     '''Creates a dictionary with the first time message. Can be used for FoxDot scheduling.'''
@@ -79,7 +78,7 @@ def get_future():
     return future_dict
 
 '''
-Returns a list with a tuple of all the note_on_messages in the file: [track name, (channel, note, velocity, time)].
+A list with a tuple of all the note_on_messages in the file: [track name, (channel, note, velocity, time)].
 Each value is translated to something usable by FoxDot, where appropriate.
 '''
 note_on_list = []
@@ -112,10 +111,16 @@ for k,v in note_on_dict.items():
 def get_next_notes(note, note_list):
     return [n for i, n in enumerate(note_list) if i > 0 and note_list[i - 1] == note]
 
-def get_track_note_dict(notes):
+def get_track_note_dict(notes): #perhaps revert this function to its original state, while removing blank lists
     track_note_dict = OrderedDict({note: get_next_notes(note, notes) for note in set(notes)})
     track_note_dict.move_to_end(notes[0], last=False)
-    return track_note_dict
+    track_note_dict_cleaned = {k: v for k, v in track_note_dict.items() if v is not None and any(v)}
+    return track_note_dict_cleaned
+
+# def get_track_note_dict(notes): #perhaps revert this function to its original state, while removing blank lists
+#     track_note_dict = OrderedDict({note: get_next_notes(note, notes) for note in set(notes)})
+#     track_note_dict.move_to_end(notes[0], last=False)
+#     return track_note_dict
 
 def get_markov_dict(dict):
     return {track: get_track_note_dict(notes) for track, notes in dict.items()}
@@ -125,9 +130,7 @@ note_markov = get_markov_dict(note_dict)
 amp_markov = get_markov_dict(amp_dict)
 dur_markov = get_markov_dict(dur_dict)
 
-# print(note_dict)
-# print(note_markov)
-
+print(note_markov)
 
 def print_tracks():
     print(' - - - tracks: - - - ')
