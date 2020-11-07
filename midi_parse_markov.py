@@ -111,16 +111,11 @@ for k,v in note_on_dict.items():
 def get_next_notes(note, note_list):
     return [n for i, n in enumerate(note_list) if i > 0 and note_list[i - 1] == note]
 
-def get_track_note_dict(notes): #perhaps revert this function to its original state, while removing blank lists
+def get_track_note_dict(notes):
     track_note_dict = OrderedDict({note: get_next_notes(note, notes) for note in set(notes)})
     track_note_dict.move_to_end(notes[0], last=False)
     track_note_dict_cleaned = {k: v for k, v in track_note_dict.items() if v is not None and any(v)}
     return track_note_dict_cleaned
-
-# def get_track_note_dict(notes): #perhaps revert this function to its original state, while removing blank lists
-#     track_note_dict = OrderedDict({note: get_next_notes(note, notes) for note in set(notes)})
-#     track_note_dict.move_to_end(notes[0], last=False)
-#     return track_note_dict
 
 def get_markov_dict(dict):
     return {track: get_track_note_dict(notes) for track, notes in dict.items()}
